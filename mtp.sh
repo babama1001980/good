@@ -12,32 +12,8 @@ pgrep -x mtp > /dev/null && pkill -9 mtp >/dev/null 2>&1
 
 check_port() {
   purple "正在安装中,请稍等..."
-  # 指定固定端口
+  # 直接指定固定端口，不检测是否可用
   MTP_PORT=25898
-  port_list=$(devil port list)
-  tcp_ports=$(echo "$port_list" | grep -c "tcp")
-
-  # 检查指定端口是否已被占用
-  if echo "$port_list" | grep -q "tcp.*$MTP_PORT"; then
-    green "端口 $MTP_PORT 已存在，直接使用"
-  else
-    if [[ $tcp_ports -ge 1 ]]; then
-      # 如果已有其他 TCP 端口，删除一个以腾出空间（根据需要调整逻辑）
-      old_tcp_port=$(echo "$port_list" | awk '/tcp/ {print $1}' | head -n 1)
-      devil port del tcp $old_tcp_port
-      green "已删除旧 TCP 端口: $old_tcp_port"
-    fi
-
-    # 添加指定的端口
-    result=$(devil port add tcp $MTP_PORT 2>&1)
-    if [[ $result == *"succesfully"* ]]; then
-      green "已成功添加 TCP 端口: $MTP_PORT"
-    else
-      red "无法添加端口 $MTP_PORT，可能已被占用或无权限"
-      exit 1
-    fi
-  fi
-
   devil binexec on >/dev/null 2>&1
   green "使用 $MTP_PORT 作为 TG 代理端口"
 }
